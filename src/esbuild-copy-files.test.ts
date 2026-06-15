@@ -7,6 +7,7 @@ import { copy } from './esbuild-copy-files';
 
 const fromDir = 'sample';
 const fromFile = `${fromDir}/sample.json`;
+const fromFile2 = `${fromDir}/sample-2.txt`;
 const toDir = 'sample-output';
 const toFile = `${toDir}/sample.json`;
 const toFile2 = `${toDir}/sample-2.txt`;
@@ -21,13 +22,16 @@ describe('Copy file plugin', () => {
     expect(mockBuild.onEnd).toHaveBeenCalledTimes(1);
   });
 
-  it('use onStart', async () => {
+  it('use array', async () => {
     const mockBuild = { onStart: vi.fn(), onEnd: vi.fn() } as unknown as PluginBuild;
 
-    copy({ from: fromFile, to: toFile, on: 'onStart' }).setup(mockBuild);
+    copy([
+      { from: fromFile, to: toFile, on: 'onStart' },
+      { from: fromFile2, to: toFile2, on: 'onEnd' },
+    ]).setup(mockBuild);
 
     expect(mockBuild.onStart).toHaveBeenCalledTimes(1);
-    expect(mockBuild.onEnd).toHaveBeenCalledTimes(0);
+    expect(mockBuild.onEnd).toHaveBeenCalledTimes(1);
   });
 
   it('copy file with esbuild', async () => {

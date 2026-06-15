@@ -1,14 +1,12 @@
-import { copyFileSync, existsSync, mkdirSync, readdirSync, rmSync, statSync } from 'fs';
-import { basename, dirname, join, relative } from 'path';
+import { copyFileSync, existsSync, mkdirSync, readdirSync, statSync } from 'fs';
+import { basename, dirname } from 'path';
 
-import chokidar from 'chokidar';
-import type { Plugin } from 'esbuild';
+import type { Plugin, PluginBuild } from 'esbuild';
 
 export interface CopyPluginOptions {
   from: string;
   to: string;
   on?: 'onStart' | 'onEnd';
-  watch?: boolean;
 }
 
 const copyFiles = (from: string, to: string) => {
@@ -32,34 +30,20 @@ const copyFiles = (from: string, to: string) => {
   }
 };
 
-const removeOutput = (to: string) => {
-  try {
-    rmSync(to);
-  } catch (error) {
-    console.error(error);
-  }
+const setup = (build: PluginBuild, options: CopyPluginOptions) => {
+  const { from, to, on = 'onEnd' } = options;
+  const run = () => copyFiles(from, to);
+  build[on](run);
 };
 
-export function copy(options: CopyPluginOptions): Plugin {
-  const { from, to, on = 'onEnd', watch = true } = options;
-
+export function copy(options: CopyPluginOptions | CopyPluginOptions[]): Plugin {
   return {
     name: '@amoklab/esbuild-copy-plugin',
     setup(build) {
-      const run = () => copyFiles(from, to);
-      build[on](() => {
-        run();
-        if (watch) {
-          chokidar
-            .watch(from, { ignoreInitial: false, awaitWriteFinish: { stabilityThreshold: 250 } })
-            .on('change', run)
-            .on('add', run)
-            .on('unlink', (file) => {
-              const rel = relative(from, file);
-              removeOutput(join(to, rel));
-            });
-        }
-      });
+      const list = Array.isArray(options) ? options : [options];
+      for (const option of list) {
+        setup(build, option);
+      }
     },
   };
 }
