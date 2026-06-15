@@ -19,7 +19,7 @@ import { copy } from '@amoklab/esbuild-copy-files';
 await build({
   entryPoints: ['src/index.ts'],
   outfile: 'dist/index.js',
-  plugins: [copy({ from: 'sample', to: 'dist/sample' })],
+  plugins: [copy([{ from: 'sample', to: 'dist/sample' }])],
 });
 ```
 
@@ -49,7 +49,7 @@ You can copy either a single file or an entire directory. If the source is a dir
 Creates an esbuild plugin instance.
 
 ```ts
-copy(options: CopyPluginOptions): Plugin
+copy(options: CopyPluginOptions | CopyPluginOptions): Plugin
 ```
 
 ### CopyPluginOptions
@@ -59,7 +59,6 @@ interface CopyPluginOptions {
   from: string;
   to: string;
   on?: 'onStart' | 'onEnd' = 'onEnd';
-  watch?: boolean = false
 }
 ```
 
@@ -68,9 +67,7 @@ interface CopyPluginOptions {
 - `from`: Source file or directory to copy.
 - `to`: Destination file or directory.
 - `on`: When to run the copy step. Defaults to `onEnd`.
-- `watch`: Enables file watching for changes. Defaults to `true`.
 
 ## Notes
 
-- The plugin uses esbuild lifecycle hooks and watches the source path when enabled.
-- Deletions are also removed from the destination when watching is active.
+- The plugin uses esbuild lifecycle hooks
